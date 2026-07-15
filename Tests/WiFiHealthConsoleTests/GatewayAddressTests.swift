@@ -7,7 +7,7 @@ final class GatewayAddressTests: XCTestCase {
         XCTAssertTrue(GatewayAddress.isPrivateOrLocal("10.0.0.1"))
         XCTAssertTrue(GatewayAddress.isPrivateOrLocal("172.20.1.1"))
         XCTAssertTrue(GatewayAddress.isPrivateOrLocal("100.64.0.1"))
-        XCTAssertFalse(GatewayAddress.isPrivateOrLocal("7.247.108.1"))
+        XCTAssertFalse(GatewayAddress.isPrivateOrLocal("203.0.113.1"))
         XCTAssertFalse(GatewayAddress.isPrivateOrLocal("1.1.1.1"))
     }
 
