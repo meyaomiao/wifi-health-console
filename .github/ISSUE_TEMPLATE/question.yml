@@ -1,0 +1,53 @@
+name: 使用问题
+description: 询问安装、权限、指标含义或诊断结果
+title: "[Question] "
+labels:
+  - question
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Issue 内容和附件对所有人公开。请使用“家庭网络”“当前路由器”等代称，不要公开 Wi-Fi 密码、完整 SSID/BSSID、公网 IP、精确位置或账号信息。
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 使用平台
+      options:
+        - macOS
+        - Windows x64
+        - Windows ARM64
+        - 尚未安装
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 应用版本
+      placeholder: 例如 v0.4.0；尚未安装可填写“无”
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 你的问题
+      description: 请说明你想完成什么，以及具体卡在哪里。
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已经尝试过什么
+      description: 可选。请勿粘贴未经脱敏的完整日志。
+
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: 隐私确认
+      options:
+        - label: 我已删除或遮盖凭据、网络标识和个人信息。
+          required: true

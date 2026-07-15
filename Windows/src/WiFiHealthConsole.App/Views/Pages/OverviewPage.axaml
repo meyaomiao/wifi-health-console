@@ -1,0 +1,123 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.OverviewPage"
+             x:DataType="vm:OverviewPageViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <Border Grid.Column="1"
+                Classes="status-pill"
+                Background="{Binding OverallBackground}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fi:FluentIcon Icon="{Binding ConclusionIcon}"
+                           IconVariant="Regular"
+                           Foreground="{Binding OverallForeground}"
+                           FontSize="13"
+                           VerticalAlignment="Center" />
+            <TextBlock Text="{Binding OverallStatus}" Foreground="{Binding OverallForeground}" FontWeight="SemiBold" FontSize="12" />
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Border Classes="error-banner" IsVisible="{Binding HasError}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <TextBlock Text="!"
+                     Foreground="{DynamicResource CriticalBrush}"
+                     FontSize="17"
+                     FontWeight="Bold" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="操作未完成" FontSize="12.5" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="card"
+              Background="#342F28"
+              BorderBrush="#6B4A23"
+            IsVisible="{Binding ShowPermissionBanner}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+          <fi:FluentIcon Icon="LocationOff" IconVariant="Regular" Foreground="{DynamicResource WarningBrush}" FontSize="20" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="{Binding PermissionTitle}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="{Binding PermissionDetail}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <Button Grid.Column="2" Classes="secondary" Content="授权 / 设置" Command="{Binding OpenLocationSettingsCommand}" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <Border Classes="card" Background="{Binding ConclusionBackground}" BorderBrush="{Binding ConclusionBorder}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+          <Border Width="28" Height="28" CornerRadius="14" Background="{Binding OverallForeground}" VerticalAlignment="Center">
+            <fi:FluentIcon Icon="{Binding ConclusionIcon}"
+                           IconVariant="Regular"
+                           Foreground="{DynamicResource AppBackgroundBrush}"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" Spacing="3">
+            <TextBlock Text="{Binding Conclusion}" FontWeight="SemiBold" FontSize="14" />
+            <TextBlock Text="{Binding ConclusionDetail}" Classes="caption" />
+          </StackPanel>
+          <Button Grid.Column="2"
+                  Classes="primary page-action"
+                  Command="{Binding RunDiagnosisCommand}"
+                  VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="HeartPulse" IconVariant="Regular" FontSize="15" />
+              <TextBlock Text="60 秒体检" Foreground="White" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
+
+      <ItemsControl ItemsSource="{Binding Metrics}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <UniformGrid Columns="5" ColumnSpacing="10" RowSpacing="10" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:MetricCardViewModel">
+            <Border Classes="card" MinHeight="150" Padding="13">
+              <Grid RowDefinitions="Auto,Auto,*,Auto" RowSpacing="9">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                  <fi:FluentIcon Icon="{Binding Icon}" IconVariant="Regular" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Title}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  <Border Grid.Column="2" Classes="status-pill" Background="{Binding StatusBackground}" Padding="8,3">
+                    <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="10" FontWeight="SemiBold" />
+                  </Border>
+                </Grid>
+                <TextBlock Grid.Row="1" Text="{Binding Value}" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Grid.Row="2" Text="{Binding Explanation}" Classes="caption" TextWrapping="Wrap" />
+                <TextBlock Grid.Row="3" Text="{Binding Standard}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9.5" TextWrapping="Wrap" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="证据与下一步" Classes="section-title" />
+        <ItemsControl ItemsSource="{Binding Evidence}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:EvidenceItemViewModel">
+              <Grid ColumnDefinitions="24,*" ColumnSpacing="8" Margin="0,3">
+                <fi:FluentIcon Icon="{Binding Icon}" IconVariant="Regular" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" HorizontalAlignment="Center" />
+                <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextWrapping="Wrap" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

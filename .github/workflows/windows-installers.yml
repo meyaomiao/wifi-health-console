@@ -1,0 +1,166 @@
+name: Windows EXE installers
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "Windows/**"
+      - "VERSION"
+      - "global.json"
+      - ".github/workflows/windows-installers.yml"
+  pull_request:
+    paths:
+      - "Windows/**"
+      - "VERSION"
+      - "global.json"
+      - ".github/workflows/windows-installers.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-installers-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  WINDOWS_SIGNING_AVAILABLE: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_BASE64 != '' && secrets.WINDOWS_SIGNING_CERTIFICATE_PASSWORD != '' }}
+
+jobs:
+  build-package-test:
+    name: Build, package, and smoke test
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            Windows/src/**/*.csproj
+            Windows/tests/**/*.csproj
+
+      - name: Restore
+        run: dotnet restore Windows/WiFiHealthConsole.Windows.slnx
+
+      - name: Read unified product version
+        id: product-version
+        run: |
+          $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Invalid unified product version: '$version'."
+          }
+          $projectVersion = (& dotnet msbuild Windows/src/WiFiHealthConsole.App/WiFiHealthConsole.App.csproj -getProperty:Version -nologo | Out-String).Trim()
+          if ($projectVersion -ne $version) {
+            throw "Windows project version '$projectVersion' does not match unified product version '$version'."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Unified product version: $version"
+
+      - name: Test
+        run: dotnet test Windows/WiFiHealthConsole.Windows.slnx --configuration Release --no-restore --logger "console;verbosity=normal"
+
+      - name: Verify formatting
+        run: dotnet format Windows/WiFiHealthConsole.Windows.slnx --verify-no-changes --no-restore
+
+      - name: Publish self-contained x64 and ARM64 applications
+        run: |
+          dotnet publish Windows/src/WiFiHealthConsole.App/WiFiHealthConsole.App.csproj --configuration Release --runtime win-x64 --self-contained true --no-restore --output Windows/artifacts/publish/win-x64 -p:PublishSingleFile=false -p:PublishTrimmed=false -p:DebugSymbols=false -p:DebugType=None
+          dotnet publish Windows/src/WiFiHealthConsole.App/WiFiHealthConsole.App.csproj --configuration Release --runtime win-arm64 --self-contained true --no-restore --output Windows/artifacts/publish/win-arm64 -p:PublishSingleFile=false -p:PublishTrimmed=false -p:DebugSymbols=false -p:DebugType=None
+
+      - name: Verify multi-file publish outputs
+        run: |
+          foreach ($runtime in @("win-x64", "win-arm64")) {
+            $publishDirectory = "Windows/artifacts/publish/$runtime"
+            $application = Join-Path $publishDirectory "WiFiHealthConsole.exe"
+            if (-not (Test-Path -LiteralPath $application)) {
+              throw "Missing application launcher for $runtime."
+            }
+
+            $files = @(Get-ChildItem -LiteralPath $publishDirectory -File -Recurse)
+            if ($files.Count -lt 10) {
+              throw "$runtime publish produced only $($files.Count) files; the release must remain multi-file and self-contained."
+            }
+
+            if (-not (Test-Path -LiteralPath (Join-Path $publishDirectory "coreclr.dll"))) {
+              throw "$runtime publish is not self-contained: coreclr.dll is missing."
+            }
+          }
+
+      - name: Sign application launchers when Windows certificate secrets exist
+        if: env.WINDOWS_SIGNING_AVAILABLE == 'true'
+        env:
+          WINDOWS_SIGNING_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_BASE64 }}
+          WINDOWS_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          ./Windows/scripts/Sign-WindowsArtifacts.ps1 -Path @(
+            "Windows/artifacts/publish/win-x64/WiFiHealthConsole.exe",
+            "Windows/artifacts/publish/win-arm64/WiFiHealthConsole.exe"
+          )
+
+      - name: Report unsigned build
+        if: env.WINDOWS_SIGNING_AVAILABLE != 'true'
+        run: Write-Host "Windows signing secrets are not configured; producing unsigned CI artifacts. Apple Developer ID certificates cannot sign Windows executables."
+
+      - name: Install NSIS
+        run: choco install nsis --yes --no-progress --limit-output
+
+      - name: Build x64 and ARM64 EXE installers
+        run: ./Windows/scripts/Build-WindowsInstallers.ps1
+
+      - name: Sign installers when Windows certificate secrets exist
+        if: env.WINDOWS_SIGNING_AVAILABLE == 'true'
+        env:
+          WINDOWS_SIGNING_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_BASE64 }}
+          WINDOWS_SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_CERTIFICATE_PASSWORD }}
+        run: |
+          ./Windows/scripts/Sign-WindowsArtifacts.ps1 -Path @(
+            "Windows/artifacts/installers/WiFi-Health-Console-Setup-x64.exe",
+            "Windows/artifacts/installers/WiFi-Health-Console-Setup-arm64.exe"
+          )
+
+      - name: Smoke test x64 installer
+        run: ./Windows/scripts/Test-X64Installer.ps1 -InstallerPath Windows/artifacts/installers/WiFi-Health-Console-Setup-x64.exe -ExpectedVersion "${{ steps.product-version.outputs.version }}"
+
+      - name: Verify ARM64 installer artifact
+        run: |
+          $installer = Get-Item -LiteralPath "Windows/artifacts/installers/WiFi-Health-Console-Setup-arm64.exe"
+          if ($installer.Length -lt 1MB) {
+            throw "ARM64 installer is unexpectedly small: $($installer.Length) bytes."
+          }
+          Write-Host "ARM64 installer artifact verified: $($installer.Length) bytes."
+
+      - name: Generate SHA-256 checksums
+        run: |
+          $installerDirectory = "Windows/artifacts/installers"
+          Get-ChildItem -LiteralPath $installerDirectory -Filter "*.exe" -File |
+            Sort-Object Name |
+            ForEach-Object {
+              $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  $($_.Name)"
+            } |
+            Set-Content -LiteralPath (Join-Path $installerDirectory "SHA256SUMS-windows.txt") -Encoding ascii
+          Get-Content -LiteralPath (Join-Path $installerDirectory "SHA256SUMS-windows.txt")
+
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: wifi-health-console-${{ steps.product-version.outputs.version }}-windows-installers
+          path: |
+            Windows/artifacts/installers/WiFi-Health-Console-Setup-x64.exe
+            Windows/artifacts/installers/WiFi-Health-Console-Setup-arm64.exe
+            Windows/artifacts/installers/SHA256SUMS-windows.txt
+          if-no-files-found: error
+          retention-days: 14

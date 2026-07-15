@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.RouterPage"
+             x:DataType="vm:RouterPageViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+          <Button Classes="secondary page-action" Command="{Binding RefreshCommand}" IsEnabled="{Binding !IsDetecting}">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="ArrowClockwise" IconVariant="Regular" FontSize="14" />
+              <TextBlock Text="重新检测" />
+            </StackPanel>
+          </Button>
+          <Button Classes="primary page-action" Command="{Binding OpenRouterCommand}" IsEnabled="{Binding CanOpenGateway}">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="Open" IconVariant="Regular" FontSize="14" />
+              <TextBlock Text="打开管理页" Foreground="White" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
+      </Grid>
+
+      <Border Classes="error-banner" IsVisible="{Binding HasError}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <TextBlock Text="!"
+                     Foreground="{DynamicResource CriticalBrush}"
+                     FontSize="17"
+                     FontWeight="Bold" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="操作未完成" FontSize="12.5" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="card">
+        <Grid ColumnDefinitions="34,*" ColumnSpacing="12">
+          <fi:FluentIcon Icon="Router" IconVariant="Regular" Foreground="{DynamicResource AccentBrush}" FontSize="23" />
+          <StackPanel Grid.Column="1" Spacing="5">
+            <TextBlock Text="{Binding DetectionStatus}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="{Binding Gateway}" FontSize="21" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding GatewaySource, StringFormat=来源：{0}}" Classes="caption" />
+            <TextBlock Text="{Binding GatewayExplanation}"
+                       Classes="caption"
+                       TextWrapping="Wrap" />
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fi:FluentIcon Icon="Info" IconVariant="Regular" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" />
+              <TextBlock Text="工具只负责识别和打开候选地址，不会自动登录或修改路由器设置。"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         FontSize="10.5" />
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="card"
+              Background="{DynamicResource WarningSurfaceBrush}"
+              IsVisible="{Binding ShowScanEvidenceNotice}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <TextBlock Text="!"
+                     Foreground="{DynamicResource WarningBrush}"
+                     FontSize="17"
+                     FontWeight="Bold" />
+          <TextBlock Grid.Column="1"
+                     Text="{Binding ScanEvidenceNotice}"
+                     Classes="caption"
+                     TextWrapping="Wrap" />
+        </Grid>
+      </Border>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="当前频段、频宽与信道建议" Classes="section-title" />
+        <ItemsControl ItemsSource="{Binding Suggestions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:SuggestionCardViewModel">
+              <Border Classes="card" Margin="0,0,0,10">
+                <StackPanel Spacing="7">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <fi:FluentIcon Icon="{Binding Icon}" IconVariant="Regular" FontSize="17" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Classes="status-pill" Background="{Binding StatusBackground}">
+                      <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="10.5" FontWeight="SemiBold" />
+                    </Border>
+                  </Grid>
+                  <TextBlock Text="{Binding Headline}" FontWeight="SemiBold" FontSize="13" />
+                  <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <Border BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+        <Button Classes="primary page-action"
+                Command="{Binding RunRetestCommand}"
+                HorizontalAlignment="Left">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <fi:FluentIcon Icon="ArrowClockwise" IconVariant="Regular" FontSize="14" />
+            <TextBlock Text="运行变更后回测" Foreground="White" />
+          </StackPanel>
+        </Button>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

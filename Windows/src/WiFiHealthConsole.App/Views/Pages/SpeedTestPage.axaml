@@ -1,0 +1,539 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:controls="using:WiFiHealthConsole.App.Controls"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.SpeedTestPage"
+             x:DataType="vm:SpeedTestPageViewModel">
+  <ScrollViewer x:Name="PageScroller"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="primary page-action"
+                Command="{Binding RunSpeedTestCommand}"
+                IsEnabled="{Binding !IsRunning}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <fi:FluentIcon Icon="Play" IconVariant="Filled" FontSize="14" />
+            <TextBlock Text="{Binding RunButtonText}" Foreground="White" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <Border Classes="card">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="72,*" ColumnSpacing="12">
+            <TextBlock Text="测速链路"
+                       FontWeight="SemiBold"
+                       FontSize="12.5"
+                       VerticalAlignment="Top"
+                       Margin="0,6,0,0" />
+            <StackPanel Grid.Column="1" Width="520" HorizontalAlignment="Left" Spacing="6">
+              <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                      CornerRadius="8"
+                      Padding="3"
+                      Height="28">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="3">
+                  <ToggleButton Classes="segment"
+                                Content="当前实际链路"
+                                IsChecked="{Binding IsCurrentRouteSelected}"
+                                IsEnabled="{Binding !IsRunning}"
+                                Command="{Binding SelectRouteCommand}"
+                                CommandParameter="current" />
+                  <ToggleButton Grid.Column="1"
+                                Classes="segment"
+                                Content="直连 Wi-Fi 基线"
+                                IsChecked="{Binding IsDirectRouteSelected}"
+                                IsEnabled="{Binding !IsRunning}"
+                                Command="{Binding SelectRouteCommand}"
+                                CommandParameter="direct" />
+                </Grid>
+              </Border>
+              <TextBlock Text="{Binding RouteDetail}" Classes="caption" TextWrapping="Wrap" />
+              <StackPanel IsVisible="{Binding ShowDirectWifiInterface}" Orientation="Horizontal" Spacing="6">
+                <fi:FluentIcon Icon="NetworkCheck"
+                               IconVariant="Regular"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DirectWifiInterfaceDetail}"
+                           Classes="caption"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+
+          <Grid ColumnDefinitions="72,*" ColumnSpacing="12">
+            <TextBlock Text="测速时长"
+                       FontWeight="SemiBold"
+                       FontSize="12.5"
+                       VerticalAlignment="Top"
+                       Margin="0,6,0,0" />
+            <StackPanel Grid.Column="1" Width="520" HorizontalAlignment="Left" Spacing="6">
+              <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                      CornerRadius="8"
+                      Padding="3"
+                      Height="28">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="3">
+                  <ToggleButton Classes="segment"
+                                Content="标准 · 吞吐约 40 秒"
+                                IsChecked="{Binding IsStandardDurationSelected}"
+                                IsEnabled="{Binding !IsRunning}"
+                                Command="{Binding SelectDurationCommand}"
+                                CommandParameter="standard" />
+                  <ToggleButton Grid.Column="1"
+                                Classes="segment"
+                                Content="稳定 · 吞吐约 60 秒"
+                                IsChecked="{Binding IsStableDurationSelected}"
+                                IsEnabled="{Binding !IsRunning}"
+                                Command="{Binding SelectDurationCommand}"
+                                CommandParameter="stable" />
+                </Grid>
+              </Border>
+              <TextBlock Text="{Binding DurationDetail}" Classes="caption" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <fi:FluentIcon Icon="Info"
+                               IconVariant="Regular"
+                               FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               VerticalAlignment="Top"
+                               Margin="0,1,0,0" />
+                <TextBlock Text="{Binding TrafficWarning}" Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+
+          <Border BorderBrush="{DynamicResource BorderSoftBrush}"
+                  BorderThickness="0,1,0,0"
+                  Padding="0,11,0,0">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="9">
+              <fi:FluentIcon Icon="Phone"
+                             IconVariant="Regular"
+                             FontSize="15"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+              <StackPanel Grid.Column="1" Spacing="3">
+                <TextBlock Text="手机热点对照口径" FontSize="11.5" FontWeight="SemiBold" />
+                <TextBlock Text="手机常显示热点全部设备的瞬时总流量；本工具显示这台 Windows 电脑到测速节点的分阶段平均有效吞吐，并同时给出 Mbps 与 MB/s。"
+                           Classes="caption"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding IsRunning}" BorderBrush="{DynamicResource AccentBrush}">
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <fi:FluentIcon Icon="Gauge"
+                           IconVariant="Regular"
+                           FontSize="18"
+                           Foreground="{DynamicResource AccentBrush}"
+                           VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding ActivePhase}"
+                       FontWeight="SemiBold"
+                       FontSize="13"
+                       VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding MaximumDurationHint}"
+                       Classes="caption"
+                       VerticalAlignment="Center" />
+          </Grid>
+          <ProgressBar IsIndeterminate="True" />
+        </StackPanel>
+      </Border>
+
+      <Border IsVisible="{Binding ShowErrorState}" Classes="error-banner">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+          <fi:FluentIcon Icon="Warning"
+                         IconVariant="Regular"
+                         FontSize="19"
+                         Foreground="{DynamicResource CriticalBrush}" />
+          <StackPanel Grid.Column="1" Spacing="3">
+            <TextBlock Text="本次测速未完成" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <Button Grid.Column="2"
+                  Classes="secondary page-action"
+                  Content="重试"
+                  Command="{Binding RunSpeedTestCommand}"
+                  VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <StackPanel IsVisible="{Binding ShowEmptyState}"
+                  HorizontalAlignment="Center"
+                  Spacing="9"
+                  Margin="0,54,0,0">
+        <fi:FluentIcon Icon="Gauge"
+                       IconVariant="Regular"
+                       FontSize="48"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center" />
+        <TextBlock Text="尚未测速"
+                   FontSize="22"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center" />
+        <TextBlock Text="{Binding EmptyStateDescription}"
+                   Classes="page-subtitle"
+                   TextAlignment="Center"
+                   TextWrapping="Wrap"
+                   MaxWidth="560" />
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding ShowCharts}" Spacing="12">
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+          <StackPanel Spacing="2">
+            <TextBlock Text="{Binding TrendHeading}" Classes="section-title" />
+            <TextBlock Text="下载和上传严格分阶段执行，不会同时绘制到同一条曲线。" Classes="caption" />
+          </StackPanel>
+          <TextBlock Grid.Column="1"
+                     Text="{Binding TrendInterfaceDisplay, StringFormat=Wi-Fi 上下文：{0}}"
+                     Classes="caption"
+                     VerticalAlignment="Center" />
+        </Grid>
+
+        <Border Classes="card" Padding="16,14">
+          <Grid RowDefinitions="Auto,210,Auto" RowSpacing="8">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+              <StackPanel Spacing="2">
+                <TextBlock Text="下载阶段" FontWeight="SemiBold" FontSize="14" />
+                <TextBlock Text="蓝线仅表示下载测试自身的实时有效吞吐" Classes="caption" />
+              </StackPanel>
+              <Border Grid.Column="1"
+                      Classes="status-pill"
+                      Background="{Binding DownloadPhaseStatusBackground}"
+                      VerticalAlignment="Center">
+                <TextBlock Text="{Binding DownloadPhaseStatus}"
+                           Foreground="{Binding DownloadPhaseStatusForeground}"
+                           FontSize="11"
+                           FontWeight="SemiBold" />
+              </Border>
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                <TextBlock Text="{Binding DownloadSpeedDisplay}"
+                           Foreground="{DynamicResource AccentBrush}"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="·" Classes="caption" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding DownloadMegabytesPerSecond}" Classes="caption" VerticalAlignment="Center" />
+              </StackPanel>
+            </Grid>
+            <controls:SpeedLineChart Grid.Row="1"
+                                     Samples="{Binding DownloadSamples}"
+                                     Revision="{Binding DownloadSamples.Count}"
+                                     LineBrush="{DynamicResource AccentBrush}"
+                                     MinimumMaximum="100"
+                                     MaximumSeconds="{Binding ChartMaximumSeconds}"
+                                     Focusable="True"
+                                     AutomationProperties.Name="下载实时速度曲线"
+                                     AutomationProperties.HelpText="横轴为下载阶段秒数，纵轴为 Mbps；当前数值在图表标题右侧显示。" />
+            <TextBlock Grid.Row="2" Text="纵轴：Mbps · 横轴：本阶段秒数" Classes="caption" />
+          </Grid>
+        </Border>
+
+        <Border Classes="card" Padding="16,14">
+          <Grid RowDefinitions="Auto,210,Auto" RowSpacing="8">
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+              <StackPanel Spacing="2">
+                <TextBlock Text="上传阶段" FontWeight="SemiBold" FontSize="14" />
+                <TextBlock Text="绿线仅表示上传测试自身的实时有效吞吐" Classes="caption" />
+              </StackPanel>
+              <Border Grid.Column="1"
+                      Classes="status-pill"
+                      Background="{Binding UploadPhaseStatusBackground}"
+                      VerticalAlignment="Center">
+                <TextBlock Text="{Binding UploadPhaseStatus}"
+                           Foreground="{Binding UploadPhaseStatusForeground}"
+                           FontSize="11"
+                           FontWeight="SemiBold" />
+              </Border>
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                <TextBlock Text="{Binding UploadSpeedDisplay}"
+                           Foreground="{DynamicResource GoodBrush}"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="·" Classes="caption" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding UploadMegabytesPerSecond}" Classes="caption" VerticalAlignment="Center" />
+              </StackPanel>
+            </Grid>
+            <controls:SpeedLineChart Grid.Row="1"
+                                     Samples="{Binding UploadSamples}"
+                                     Revision="{Binding UploadSamples.Count}"
+                                     LineBrush="{DynamicResource GoodBrush}"
+                                     MinimumMaximum="20"
+                                     MaximumSeconds="{Binding ChartMaximumSeconds}"
+                                     Focusable="True"
+                                     AutomationProperties.Name="上传实时速度曲线"
+                                     AutomationProperties.HelpText="横轴为上传阶段秒数，纵轴为 Mbps；当前数值在图表标题右侧显示。" />
+            <TextBlock Grid.Row="2" Text="纵轴：Mbps · 横轴：本阶段秒数" Classes="caption" />
+          </Grid>
+        </Border>
+
+        <Border Classes="card" Padding="14,10">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Text="{Binding Endpoint, StringFormat=测速节点：{0}}" Classes="caption" TextTrimming="CharacterEllipsis" />
+            <TextBlock Grid.Column="1" Text="{Binding TransferredTraffic}" Classes="caption" />
+          </Grid>
+        </Border>
+      </StackPanel>
+
+      <StackPanel IsVisible="{Binding ShowResultCards}" Spacing="18">
+        <Border Classes="card"
+                Background="{Binding ResultSummaryBackground}"
+                BorderBrush="{Binding ResultSummaryBorder}">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="13">
+            <Border Width="30"
+                    Height="30"
+                    CornerRadius="15"
+                    Background="{Binding ResultStatusForeground}"
+                    VerticalAlignment="Top">
+              <fi:FluentIcon Icon="{Binding ResultIcon}"
+                             IconVariant="Regular"
+                             Foreground="{DynamicResource AppBackgroundBrush}"
+                             FontSize="16"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="4">
+              <TextBlock Text="{Binding ResultConclusion}"
+                         FontWeight="SemiBold"
+                         FontSize="15"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding ResultContext}" Classes="caption" />
+            </StackPanel>
+            <Border Grid.Column="2"
+                    Classes="status-pill"
+                    Background="{Binding ResultStatusBackground}"
+                    VerticalAlignment="Top">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <fi:FluentIcon Icon="{Binding ResultIcon}"
+                               IconVariant="Regular"
+                               Foreground="{Binding ResultStatusForeground}"
+                               FontSize="12" />
+                <TextBlock Text="{Binding ResultStatus}"
+                           Foreground="{Binding ResultStatusForeground}"
+                           FontSize="11"
+                           FontWeight="SemiBold" />
+              </StackPanel>
+            </Border>
+          </Grid>
+        </Border>
+
+        <ItemsControl ItemsSource="{Binding ThroughputMetrics}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="2" ColumnSpacing="10" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:SpeedMetricCardViewModel">
+              <Border Classes="card" MinHeight="205">
+                <StackPanel Spacing="9">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                    <fi:FluentIcon Icon="{Binding Icon}"
+                                   IconVariant="Regular"
+                                   Foreground="{Binding AccentBrush}"
+                                   FontSize="17"
+                                   VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Title}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Classes="status-pill" Background="{Binding StatusBackground}">
+                      <TextBlock Text="{Binding Status}"
+                                 Foreground="{Binding StatusForeground}"
+                                 FontSize="10.5"
+                                 FontWeight="SemiBold" />
+                    </Border>
+                  </Grid>
+                  <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="{Binding Value}" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding SecondaryValue}"
+                               IsVisible="{Binding HasSecondaryValue}"
+                               Foreground="{Binding AccentBrush}"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Interpretation}" FontSize="12" TextWrapping="Wrap" />
+                  <Border BorderBrush="{DynamicResource BorderSoftBrush}"
+                          BorderThickness="0,1,0,0"
+                          Padding="0,8,0,0">
+                    <Grid ColumnDefinitions="48,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="7">
+                      <TextBlock Text="影响" Classes="caption" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1" Text="{Binding Impact}" Classes="caption" TextWrapping="Wrap" />
+                      <TextBlock Grid.Row="1" Text="标准" Classes="caption" FontWeight="SemiBold" />
+                      <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Standard}" Classes="caption" TextWrapping="Wrap" />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Border Classes="card" Background="#233344" BorderBrush="#315B7D">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="11">
+            <fi:FluentIcon Icon="Info"
+                           IconVariant="Regular"
+                           FontSize="18"
+                           Foreground="{DynamicResource AccentBrush}" />
+            <StackPanel Grid.Column="1" Spacing="3">
+              <TextBlock Text="不用再手动除以 8" FontSize="13" FontWeight="SemiBold" />
+              <TextBlock Text="运营商通常用 Mbps（兆比特/秒），浏览器和下载器常用 MB/s（兆字节/秒）。1 Byte = 8 bit，本工具已直接换算并同时显示。"
+                         Classes="caption"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <StackPanel Spacing="9">
+          <TextBlock Text="实际文件大约要多久" Classes="section-title" />
+          <ItemsControl ItemsSource="{Binding TransferEstimates}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="3" ColumnSpacing="10" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SpeedTransferEstimateViewModel">
+                <Border Classes="card" MinHeight="88">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                    <fi:FluentIcon Icon="{Binding Icon}"
+                                   IconVariant="Regular"
+                                   FontSize="17"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                    <StackPanel Grid.Column="1" Spacing="5">
+                      <TextBlock Text="{Binding Title}" Classes="caption" />
+                      <TextBlock Text="{Binding Value}" FontSize="17" FontWeight="SemiBold" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="按全程维持当前平均速度估算；服务器限速、Wi-Fi 波动和磁盘速度会让真实时间变化。GB 使用十进制定义（1 GB = 1,000 MB）。"
+                     Classes="caption"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Spacing="9">
+          <TextBlock Text="连接质量" Classes="section-title" />
+          <ItemsControl ItemsSource="{Binding QualityMetrics}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <UniformGrid Columns="3" ColumnSpacing="10" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SpeedMetricCardViewModel">
+                <Border Classes="card" MinHeight="190">
+                  <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7">
+                      <fi:FluentIcon Icon="{Binding Icon}"
+                                     IconVariant="Regular"
+                                     Foreground="{Binding AccentBrush}"
+                                     FontSize="15"
+                                     VerticalAlignment="Center" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding Title}"
+                                 FontSize="12.5"
+                                 FontWeight="SemiBold"
+                                 VerticalAlignment="Center" />
+                      <Border Grid.Column="2" Classes="status-pill" Background="{Binding StatusBackground}" Padding="7,3">
+                        <TextBlock Text="{Binding Status}"
+                                   Foreground="{Binding StatusForeground}"
+                                   FontSize="10"
+                                   FontWeight="SemiBold" />
+                      </Border>
+                    </Grid>
+                    <TextBlock Text="{Binding Value}" FontSize="20" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Interpretation}" Classes="caption" TextWrapping="Wrap" />
+                    <Border BorderBrush="{DynamicResource BorderSoftBrush}"
+                            BorderThickness="0,1,0,0"
+                            Padding="0,7,0,0">
+                      <StackPanel Spacing="5">
+                        <TextBlock Text="{Binding Impact}" Classes="caption" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding Standard}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
+                                   FontSize="9.5"
+                                   TextWrapping="Wrap" />
+                      </StackPanel>
+                    </Border>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Text="不要和 Wi-Fi 协商速率混淆" Classes="section-title" />
+            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="18">
+              <StackPanel Spacing="3">
+                <TextBlock Text="Wi-Fi PHY 协商速率" Classes="caption" />
+                <TextBlock Text="{Binding NegotiatedRateDisplay}" FontSize="19" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding NegotiatedRateDetail}" Classes="caption" TextWrapping="Wrap" />
+              </StackPanel>
+              <fi:FluentIcon Grid.Column="1"
+                             Icon="ArrowRight"
+                             IconVariant="Regular"
+                             Foreground="{DynamicResource TextMutedBrush}"
+                             FontSize="20"
+                             VerticalAlignment="Center" />
+              <StackPanel Grid.Column="2" Spacing="3">
+                <TextBlock Text="互联网实际下载" Classes="caption" />
+                <TextBlock Text="{Binding DownloadSpeedDisplay}" FontSize="19" FontWeight="SemiBold" />
+                <TextBlock Text="测速还受宽带套餐、出口、VPN / 代理和测试服务器影响。"
+                           Classes="caption"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="本次测量" Classes="section-title" />
+            <ItemsControl ItemsSource="{Binding MeasurementDetails}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:SpeedMeasurementDetailViewModel">
+                  <Grid ColumnDefinitions="90,*" ColumnSpacing="10" Margin="0,2">
+                    <TextBlock Text="{Binding Title}" Classes="caption" />
+                    <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="12" TextWrapping="Wrap" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border IsVisible="{Binding ShowInterfaceMismatch}"
+                    Background="{DynamicResource WarningSurfaceBrush}"
+                    CornerRadius="7"
+                    Padding="10,8">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                <fi:FluentIcon Icon="Warning"
+                               IconVariant="Regular"
+                               Foreground="{DynamicResource WarningBrush}"
+                               FontSize="15" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding InterfaceMismatchMessage}"
+                           Classes="caption"
+                           TextWrapping="Wrap" />
+              </Grid>
+            </Border>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

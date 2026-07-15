@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/WiFiHealthConsole.App/WiFiHealthConsole.App.csproj" />
+  <Project Path="src/WiFiHealthConsole.Core/WiFiHealthConsole.Core.csproj" />
+  <Project Path="tests/WiFiHealthConsole.App.Tests/WiFiHealthConsole.App.Tests.csproj" />
+  <Project Path="tests/WiFiHealthConsole.Core.Tests/WiFiHealthConsole.Core.Tests.csproj" />
+</Solution>

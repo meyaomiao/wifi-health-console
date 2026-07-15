@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <ProductVersionFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\VERSION'))</ProductVersionFile>
+    <Version>$([System.IO.File]::ReadAllText('$(ProductVersionFile)').Trim())</Version>
+    <InformationalVersion>$(Version)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

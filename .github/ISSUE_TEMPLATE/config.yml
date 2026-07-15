@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 私密报告安全或隐私漏洞
+    url: https://github.com/meyaomiao/wifi-health-console/security/advisories/new
+    about: 不要在公开 Issue 中披露漏洞、凭据、真实网络标识或敏感日志。

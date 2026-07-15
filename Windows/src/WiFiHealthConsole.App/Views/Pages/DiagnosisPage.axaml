@@ -1,0 +1,239 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.DiagnosisPage"
+             x:DataType="vm:DiagnosisPageViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="primary page-action"
+                Command="{Binding RunDiagnosisCommand}"
+                IsEnabled="{Binding !IsRunning}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <fi:FluentIcon Icon="Play" IconVariant="Filled" FontSize="14" />
+            <TextBlock Text="开始体检" Foreground="White" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <Border Classes="error-banner" IsVisible="{Binding HasError}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <TextBlock Text="!"
+                     Foreground="{DynamicResource CriticalBrush}"
+                     FontSize="17"
+                     FontWeight="Bold" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="操作未完成" FontSize="12.5" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding IsRunning}">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <fi:FluentIcon Icon="HeartPulse" IconVariant="Regular" Foreground="{DynamicResource AccentBrush}" FontSize="20" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1"
+                       Text="{Binding Stage}"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <TextBlock Grid.Column="2"
+                       Text="{Binding DurationHint}"
+                       Classes="caption"
+                       VerticalAlignment="Center" />
+          </Grid>
+          <ProgressBar Minimum="0" Maximum="1" Value="{Binding Progress}" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel IsVisible="{Binding !IsRunning}" Spacing="12">
+        <StackPanel IsVisible="{Binding !HasReport}"
+                    HorizontalAlignment="Center"
+                    Spacing="10"
+                    Margin="0,76,0,0">
+          <fi:FluentIcon Icon="HeartPulse"
+                         IconVariant="Regular"
+                         FontSize="48"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Center" />
+          <TextBlock Text="尚无体检报告"
+                     FontSize="22"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="{Binding DurationHint}"
+                     Classes="page-subtitle"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <Border Classes="card"
+                IsVisible="{Binding HasReport}"
+                Background="{Binding OverallBackground}">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+            <Border Width="32"
+                    Height="32"
+                    CornerRadius="16"
+                    Background="{Binding OverallForeground}"
+                    VerticalAlignment="Top">
+              <fi:FluentIcon Icon="{Binding OverallIcon}"
+                             IconVariant="Regular"
+                             Foreground="{DynamicResource AppBackgroundBrush}"
+                             FontSize="17"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+            </Border>
+            <StackPanel Grid.Column="1" Spacing="5">
+              <TextBlock Text="{Binding OverallConclusion}"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding BaselineDescription}"
+                         Classes="caption"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding UnavailableLayers}"
+                         Classes="caption"
+                         IsVisible="{Binding ShowUnavailableLayers}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="5" HorizontalAlignment="Right">
+              <Border Classes="status-pill"
+                      Background="{DynamicResource SurfaceRaisedBrush}"
+                      HorizontalAlignment="Right">
+                <TextBlock Text="{Binding OverallStatus}"
+                           Foreground="{Binding OverallForeground}"
+                           FontSize="10.5"
+                           FontWeight="SemiBold" />
+              </Border>
+              <TextBlock Text="{Binding CompletedAt}"
+                         Classes="caption"
+                         HorizontalAlignment="Right" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <ItemsControl IsVisible="{Binding HasReport}" ItemsSource="{Binding Layers}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LayerCardViewModel">
+              <Border Classes="card" Margin="0,0,0,10">
+                <StackPanel Spacing="12">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <fi:FluentIcon Icon="{Binding Icon}"
+                                   IconVariant="Regular"
+                                   FontSize="20"
+                                   Foreground="{Binding StatusForeground}"
+                                   VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding Title}"
+                               FontWeight="SemiBold"
+                               FontSize="15"
+                               VerticalAlignment="Center" />
+                    <Border Grid.Column="2"
+                            Classes="status-pill"
+                            Background="{Binding StatusBackground}">
+                      <TextBlock Text="{Binding Status}"
+                                 Foreground="{Binding StatusForeground}"
+                                 FontWeight="SemiBold"
+                                 FontSize="10.5" />
+                    </Border>
+                  </Grid>
+
+                  <TextBlock Text="{Binding Conclusion}"
+                             FontWeight="SemiBold"
+                             FontSize="13"
+                             TextWrapping="Wrap" />
+
+                  <ItemsControl ItemsSource="{Binding Metrics}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Columns="2" ColumnSpacing="10" RowSpacing="10" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:DiagnosticMetricCardViewModel">
+                        <Border Classes="subtle-card" MinHeight="174">
+                          <StackPanel Spacing="9">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                              <TextBlock Text="{Binding Title}"
+                                         FontSize="12.5"
+                                         FontWeight="SemiBold"
+                                         VerticalAlignment="Center" />
+                              <TextBlock Grid.Column="1"
+                                         Text="{Binding Value}"
+                                         FontSize="12.5"
+                                         FontWeight="SemiBold"
+                                         VerticalAlignment="Center" />
+                              <Border Grid.Column="2"
+                                      Classes="status-pill"
+                                      Background="{Binding StatusBackground}"
+                                      Padding="8,3">
+                                <TextBlock Text="{Binding Status}"
+                                           Foreground="{Binding StatusForeground}"
+                                           FontSize="10"
+                                           FontWeight="SemiBold" />
+                              </Border>
+                            </Grid>
+
+                            <TextBlock Text="{Binding Interpretation}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap" />
+
+                            <Border BorderBrush="{DynamicResource BorderSoftBrush}"
+                                    BorderThickness="0,1,0,0"
+                                    Padding="0,8,0,0">
+                              <Grid ColumnDefinitions="48,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="7">
+                                <TextBlock Text="影响" Classes="caption" FontWeight="SemiBold" />
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Impact}"
+                                           Classes="caption"
+                                           TextWrapping="Wrap" />
+                                <TextBlock Grid.Row="1" Text="标准" Classes="caption" FontWeight="SemiBold" />
+                                <TextBlock Grid.Row="1"
+                                           Grid.Column="1"
+                                           Text="{Binding Standard}"
+                                           Classes="caption"
+                                           TextWrapping="Wrap" />
+                              </Grid>
+                            </Border>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+
+                  <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                          CornerRadius="8"
+                          Padding="11,9"
+                          IsVisible="{Binding ShowEvidence}">
+                    <StackPanel Spacing="4">
+                      <TextBlock Text="证据" Classes="caption" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding Evidence}" Classes="caption" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </Border>
+
+                  <Border BorderBrush="{DynamicResource BorderSoftBrush}"
+                          BorderThickness="0,1,0,0"
+                          Padding="0,9,0,0">
+                    <Grid ColumnDefinitions="64,*" ColumnSpacing="8">
+                      <TextBlock Text="下一步" Classes="caption" FontWeight="SemiBold" />
+                      <TextBlock Grid.Column="1"
+                                 Text="{Binding Action}"
+                                 FontSize="12"
+                                 TextWrapping="Wrap" />
+                    </Grid>
+                  </Border>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

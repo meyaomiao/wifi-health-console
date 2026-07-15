@@ -1,0 +1,83 @@
+name: 错误报告
+description: 报告可以稳定复现的功能、采集、界面或安装问题
+title: "[Bug] "
+labels:
+  - bug
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。Issue 是公开的，请不要提交 Wi-Fi 密码、精确位置、账号、完整 SSID/BSSID、公网 IP、VPN 配置或未经脱敏的日志。
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 运行平台
+      options:
+        - macOS
+        - Windows x64
+        - Windows ARM64
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 应用版本
+      placeholder: 例如 v0.4.0
+    validations:
+      required: true
+
+  - type: input
+    id: system-version
+    attributes:
+      label: 系统版本
+      placeholder: 例如 macOS 15.5 或 Windows 11 24H2
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题描述
+      description: 说明实际发生了什么，以及问题出现在哪个页面或流程。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开……
+        2. 点击……
+        3. 看到……
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 脱敏后的截图或日志
+      description: 可选。请遮盖网络名称、BSSID、IP、用户名、路径和其他个人信息。
+      render: shell
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已使用当前最新版本复现该问题。
+          required: true
+        - label: 我已搜索现有 Issue，没有找到相同问题。
+          required: true
+        - label: 我已删除或遮盖凭据、网络标识和个人信息。
+          required: true

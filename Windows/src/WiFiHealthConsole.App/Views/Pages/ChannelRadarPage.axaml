@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:controls="using:WiFiHealthConsole.App.Controls"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.ChannelRadarPage"
+             x:DataType="vm:ChannelRadarPageViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="primary page-action"
+                Command="{Binding ScanCommand}"
+                IsEnabled="{Binding !IsScanning}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <fi:FluentIcon Icon="Scan" IconVariant="Regular" FontSize="15" />
+            <TextBlock Text="{Binding ScanButtonText}" Foreground="White" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <Border Classes="card" Background="#342F28" BorderBrush="#6B4A23" IsVisible="{Binding ShowPermissionBanner}">
+        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+          <fi:FluentIcon Icon="LocationOff" IconVariant="Regular" Foreground="{DynamicResource WarningBrush}" FontSize="20" VerticalAlignment="Center" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="{Binding PermissionTitle}" FontWeight="SemiBold" FontSize="13" />
+            <TextBlock Text="{Binding PermissionDetail}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+          <Button Grid.Column="2" Classes="secondary" Content="打开设置" Command="{Binding OpenLocationSettingsCommand}" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <Border Classes="error-banner" IsVisible="{Binding HasError}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <TextBlock Text="!" Foreground="{DynamicResource CriticalBrush}" FontWeight="Bold" />
+          <TextBlock Grid.Column="1" Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+        </Grid>
+      </Border>
+
+      <Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="10">
+        <TextBlock Text="频段" FontWeight="SemiBold" FontSize="13" VerticalAlignment="Center" />
+        <Border Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="8" Padding="3">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="3">
+            <ToggleButton Classes="segment"
+                          Content="总览"
+                          IsChecked="{Binding IsOverviewSelected}"
+                          Command="{Binding SelectBandCommand}"
+                          CommandParameter="总览" />
+            <ToggleButton Grid.Column="1"
+                          Classes="segment"
+                          Content="2.4 GHz"
+                          IsChecked="{Binding IsBand2Selected}"
+                          Command="{Binding SelectBandCommand}"
+                          CommandParameter="2.4 GHz" />
+            <ToggleButton Grid.Column="2"
+                          Classes="segment"
+                          Content="5 GHz"
+                          IsChecked="{Binding IsBand5Selected}"
+                          Command="{Binding SelectBandCommand}"
+                          CommandParameter="5 GHz" />
+            <ToggleButton Grid.Column="3"
+                          Classes="segment"
+                          Content="6 GHz"
+                          IsChecked="{Binding IsBand6Selected}"
+                          Command="{Binding SelectBandCommand}"
+                          CommandParameter="6 GHz" />
+          </Grid>
+        </Border>
+        <TextBlock Grid.Column="2"
+                   Text="频宽未知的网络只显示信道标记，不会默认按 20 MHz 绘制。"
+                   Classes="caption"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center" />
+      </Grid>
+
+      <Border Classes="card" Padding="14" IsVisible="{Binding ShowChart}">
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" ColumnSpacing="20">
+            <StackPanel Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="WiFi4" IconVariant="Regular" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
+              <TextBlock Text="{Binding NetworkCount}" FontWeight="SemiBold" />
+              <TextBlock Text="可见网络" Classes="caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="Channel" IconVariant="Regular" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
+              <TextBlock Text="{Binding ActiveChannelCount}" FontWeight="SemiBold" />
+              <TextBlock Text="活跃主信道" Classes="caption" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="7">
+              <fi:FluentIcon Icon="ArrowAutofitWidth" IconVariant="Regular" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" />
+              <TextBlock Text="{Binding OverlapCount}" FontWeight="SemiBold" />
+              <TextBlock Text="当前重叠" Classes="caption" />
+            </StackPanel>
+            <TextBlock Grid.Column="4" Text="{Binding CurrentSummary}" Classes="caption" VerticalAlignment="Center" />
+          </Grid>
+
+          <Border Grid.Row="1"
+                  Height="{Binding ChartHeight}"
+                  Background="#202529"
+                  BorderBrush="{DynamicResource BorderSoftBrush}"
+                  BorderThickness="1"
+                  CornerRadius="9">
+            <controls:ChannelSpectrumChart Networks="{Binding Networks}"
+                                           Revision="{Binding Networks.Count}"
+                                           Band="{Binding SelectedBand}"
+                                           Focusable="True"
+                                           AutomationProperties.Name="附近 Wi-Fi 信道频谱"
+                                           AutomationProperties.HelpText="{Binding ChartAccessibilitySummary}" />
+          </Border>
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="22">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fi:FluentIcon Icon="ArrowUp" IconVariant="Regular" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="曲线高度 = RSSI" Classes="caption" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fi:FluentIcon Icon="ArrowAutofitWidth" IconVariant="Regular" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="曲线宽度 = AP 广播 / 估算频宽" Classes="caption" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fi:FluentIcon Icon="Status" IconVariant="Regular" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+              <TextBlock Text="蓝色曲线 = 当前网络" Classes="caption" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Row="3" Spacing="8">
+            <TextBlock Text="网络图例" FontWeight="SemiBold" FontSize="12.5" />
+            <ItemsControl ItemsSource="{Binding VisibleNetworks}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid Columns="3" ColumnSpacing="8" RowSpacing="8" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:ChannelNetworkViewModel">
+                  <Border Classes="subtle-card" Padding="10,8">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="9">
+                      <Border Width="18" Height="3" Background="{Binding Color}" CornerRadius="2" VerticalAlignment="Center" />
+                      <StackPanel Grid.Column="1" Spacing="1">
+                        <TextBlock Text="{Binding Ssid}" FontSize="11.5" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Spacing="2">
+                          <TextBlock Text="{Binding Channel, StringFormat=Ch {0}}" Classes="caption" FontSize="10" />
+                          <TextBlock Text="{Binding WidthMHz, StringFormat= · {0} MHz}" Classes="caption" FontSize="10" />
+                          <TextBlock Text="{Binding Rssi, StringFormat= · {0} dBm}" Classes="caption" FontSize="10" />
+                          <TextBlock Text=" · 当前" Foreground="{DynamicResource AccentBrush}" FontSize="10" IsVisible="{Binding IsCurrent}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="card" MinHeight="280" IsVisible="{Binding IsScanning}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
+          <ProgressBar Width="260" IsIndeterminate="True" />
+          <TextBlock Text="正在扫描附近网络" FontSize="16" FontWeight="SemiBold" />
+          <TextBlock Text="Windows 会通过原生 WLAN API 读取本次可见信道与频宽。" Classes="caption" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" MinHeight="280" IsVisible="{Binding ShowEmptyState}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+          <fi:FluentIcon Icon="Scan" IconVariant="Regular" FontSize="42" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" />
+          <TextBlock Text="此频段暂无扫描结果" FontSize="18" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="附近可能没有此频段网络，或扫描结果尚未返回。" Classes="page-subtitle" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel Spacing="10">
+        <TextBlock Text="频段、频宽与信道建议" Classes="section-title" />
+        <ItemsControl ItemsSource="{Binding Suggestions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:SuggestionCardViewModel">
+              <Border Classes="card" Margin="0,0,0,10">
+                <StackPanel Spacing="7">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <fi:FluentIcon Icon="{Binding Icon}" IconVariant="Regular" FontSize="17" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5" VerticalAlignment="Center" />
+                    <Border Grid.Column="2" Classes="status-pill" Background="{Binding StatusBackground}">
+                      <TextBlock Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="10.5" FontWeight="SemiBold" />
+                    </Border>
+                  </Grid>
+                  <TextBlock Text="{Binding Headline}" FontWeight="SemiBold" FontSize="13" />
+                  <TextBlock Text="{Binding Detail}" Classes="caption" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

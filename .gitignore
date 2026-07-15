@@ -1,0 +1,13 @@
+.build/
+dist/
+release/
+.DS_Store
+*.xcuserstate
+.idea/
+.vs/
+.vscode/
+Windows/**/bin/
+Windows/**/obj/
+Windows/artifacts/
+Windows/packages/
+Windows/.tools/

@@ -1,0 +1,103 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+        xmlns:pages="using:WiFiHealthConsole.App.Views.Pages"
+        xmlns:fi="using:FluentIcons.Avalonia"
+        x:Class="WiFiHealthConsole.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Icon="/Assets/AppIcon.ico"
+        Width="1160"
+        Height="760"
+        MinWidth="1040"
+        MinHeight="680"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="54"
+        WindowStartupLocation="CenterScreen">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="vm:OverviewPageViewModel">
+      <pages:OverviewPage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:DiagnosisPageViewModel">
+      <pages:DiagnosisPage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SpeedTestPageViewModel">
+      <pages:SpeedTestPage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ChannelRadarPageViewModel">
+      <pages:ChannelRadarPage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:HistoryPageViewModel">
+      <pages:HistoryPage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RouterPageViewModel">
+      <pages:RouterPage />
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Grid ColumnDefinitions="190,*" Background="{DynamicResource AppBackgroundBrush}">
+    <Border Grid.Column="0"
+            Background="{DynamicResource SidebarBackgroundBrush}"
+            BorderBrush="{DynamicResource BorderSoftBrush}"
+            BorderThickness="0,0,1,0">
+      <Grid RowDefinitions="Auto,*,Auto" Margin="14,11,12,12">
+        <Border Height="42" Margin="4,0,4,13" Background="Transparent" />
+
+        <ListBox Grid.Row="1"
+                 Classes="navigation"
+                 ItemsSource="{Binding NavigationItems}"
+                 SelectedItem="{Binding SelectedNavigationItem, Mode=TwoWay}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavigationItemViewModel">
+              <Grid ColumnDefinitions="26,*" ColumnSpacing="8">
+                <fi:FluentIcon Icon="{Binding Icon}"
+                               IconVariant="Regular"
+                               Width="24"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="16" />
+                <TextBlock Grid.Column="1"
+                           Text="{Binding Title}"
+                           VerticalAlignment="Center"
+                           FontSize="12.5"
+                           FontWeight="Medium" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Border Grid.Row="2" Background="Transparent" Padding="4,8" Margin="0,8,0,0">
+          <Grid ColumnDefinitions="Auto,*" ColumnSpacing="7">
+            <TextBlock Text="●" Foreground="{DynamicResource GoodBrush}" FontSize="10" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="只读诊断 · 不自动修改路由器" Classes="caption" FontSize="9.5" VerticalAlignment="Center" />
+          </Grid>
+        </Border>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Column="1" RowDefinitions="54,*">
+      <Border Grid.Row="0" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,0,0,1">
+        <Grid x:Name="TitleBarHost" ColumnDefinitions="*,Auto" Margin="20,0,148,0">
+          <TextBlock Text="Wi-Fi 体检台"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextMutedBrush}"
+                     FontSize="13"
+                     FontWeight="SemiBold" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <Button Classes="toolbar" Command="{Binding RefreshCommand}" ToolTip.Tip="刷新">
+              <fi:FluentIcon Icon="ArrowClockwise" IconVariant="Regular" FontSize="16" />
+            </Button>
+            <Button Classes="toolbar" Command="{Binding RunDiagnosisCommand}" ToolTip.Tip="开始 60 秒体检">
+              <fi:FluentIcon Icon="HeartPulse" IconVariant="Regular" FontSize="16" />
+            </Button>
+            <Button Classes="toolbar" Command="{Binding RunSpeedTestCommand}" ToolTip.Tip="开始网速测速">
+              <fi:FluentIcon Icon="Gauge" IconVariant="Regular" FontSize="16" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+      <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+    </Grid>
+  </Grid>
+</Window>

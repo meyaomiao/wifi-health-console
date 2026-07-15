@@ -1,0 +1,252 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:WiFiHealthConsole.App.ViewModels"
+             xmlns:controls="using:WiFiHealthConsole.App.Controls"
+             xmlns:fi="using:FluentIcons.Avalonia"
+             x:Class="WiFiHealthConsole.App.Views.Pages.HistoryPage"
+             x:DataType="vm:HistoryPageViewModel">
+  <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+    <StackPanel Classes="page-container">
+      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+        <StackPanel Spacing="3">
+          <TextBlock Text="{Binding Title}" Classes="page-title" />
+          <TextBlock Text="{Binding Subtitle}" Classes="page-subtitle" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="secondary page-action"
+                Command="{Binding RequestClearCommand}"
+                IsEnabled="{Binding HasHistory}"
+                VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fi:FluentIcon Icon="Delete" IconVariant="Regular" FontSize="14" VerticalAlignment="Center" />
+            <TextBlock Text="清除" VerticalAlignment="Center" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <Border Classes="error-banner" IsVisible="{Binding HasError}">
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+          <fi:FluentIcon Icon="Warning" IconVariant="Regular" Foreground="{DynamicResource CriticalBrush}" FontSize="18" />
+          <StackPanel Grid.Column="1" Spacing="2">
+            <TextBlock Text="历史记录操作未完成" FontSize="12.5" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding ErrorMessage}" Classes="caption" TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border Classes="error-banner" IsVisible="{Binding ShowClearConfirmation}">
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+          <StackPanel Spacing="2" VerticalAlignment="Center">
+            <TextBlock Text="清除全部历史记录？" FontWeight="SemiBold" FontSize="12.5" />
+            <TextBlock Text="此操作会删除本机保存的采样和变更前后标记，无法撤销。" Classes="caption" />
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Classes="secondary page-action"
+                  Content="取消"
+                  Command="{Binding CancelClearCommand}"
+                  VerticalAlignment="Center" />
+          <Button Grid.Column="2"
+                  Classes="secondary page-action"
+                  Content="确认清除"
+                  Command="{Binding ClearHistoryCommand}"
+                  VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+
+      <Border Classes="card" MinHeight="320" IsVisible="{Binding ShowEmptyState}">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="9">
+          <fi:FluentIcon Icon="ChartMultiple" IconVariant="Regular" FontSize="46" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" />
+          <TextBlock Text="尚无历史采样" FontSize="20" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+          <TextBlock Text="连接 Wi-Fi 后会自动保存无线采样；完成 60 秒体检还会记录网关延迟。"
+                     Classes="page-subtitle"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="520" />
+          <TextBlock Text="有记录后，可在每一行标记“变更前”或“变更后”进行回测对比。"
+                     Classes="caption"
+                     TextAlignment="Center" />
+        </StackPanel>
+      </Border>
+
+      <StackPanel IsVisible="{Binding HasHistory}" Spacing="18">
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBlock Text="变更前后" Classes="section-title" VerticalAlignment="Center" />
+            <Border Grid.Column="1" Background="{Binding RssiChangeBackground}" CornerRadius="7" Padding="9,5">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="RSSI" Classes="caption" />
+                <TextBlock Text="{Binding RssiChange}" Foreground="{Binding RssiChangeForeground}" FontSize="11" FontWeight="SemiBold" />
+              </StackPanel>
+            </Border>
+            <Border Grid.Column="2" Background="{DynamicResource ReferenceSurfaceBrush}" CornerRadius="7" Padding="9,5">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <TextBlock Text="网关" Classes="caption" />
+                <TextBlock Text="{Binding GatewayChange}" FontSize="11" FontWeight="SemiBold" />
+              </StackPanel>
+            </Border>
+          </Grid>
+
+          <Grid ColumnDefinitions="*,44,*" ColumnSpacing="10">
+            <Border Classes="card" MinHeight="158">
+              <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="{Binding BeforeComparison.Title}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  <Border Grid.Column="1" Background="{Binding BeforeComparison.StatusBackground}" CornerRadius="999" Padding="8,3">
+                    <TextBlock Text="{Binding BeforeComparison.Status}"
+                               Foreground="{Binding BeforeComparison.StatusForeground}"
+                               FontSize="10.5"
+                               FontWeight="SemiBold" />
+                  </Border>
+                </Grid>
+                <StackPanel Spacing="3">
+                  <TextBlock Text="{Binding BeforeComparison.Ssid}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding BeforeComparison.Meta}" Classes="caption" />
+                </StackPanel>
+                <Border BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,1,0,0" Padding="0,9,0,0">
+                  <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="信道" Classes="caption" />
+                      <TextBlock Text="{Binding BeforeComparison.Channel}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                      <TextBlock Text="频宽" Classes="caption" />
+                      <TextBlock Text="{Binding BeforeComparison.ChannelWidth}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="2">
+                      <TextBlock Text="RSSI" Classes="caption" />
+                      <TextBlock Text="{Binding BeforeComparison.Rssi}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Spacing="2">
+                      <TextBlock Text="网关延迟" Classes="caption" />
+                      <TextBlock Text="{Binding BeforeComparison.GatewayLatency}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <fi:FluentIcon Grid.Column="1"
+                           Icon="ArrowRight"
+                           IconVariant="Regular"
+                           FontSize="22"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+
+            <Border Grid.Column="2" Classes="card" MinHeight="158">
+              <StackPanel Spacing="10">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBlock Text="{Binding AfterComparison.Title}" FontSize="13.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                  <Border Grid.Column="1" Background="{Binding AfterComparison.StatusBackground}" CornerRadius="999" Padding="8,3">
+                    <TextBlock Text="{Binding AfterComparison.Status}"
+                               Foreground="{Binding AfterComparison.StatusForeground}"
+                               FontSize="10.5"
+                               FontWeight="SemiBold" />
+                  </Border>
+                </Grid>
+                <StackPanel Spacing="3">
+                  <TextBlock Text="{Binding AfterComparison.Ssid}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding AfterComparison.Meta}" Classes="caption" />
+                </StackPanel>
+                <Border BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,1,0,0" Padding="0,9,0,0">
+                  <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="信道" Classes="caption" />
+                      <TextBlock Text="{Binding AfterComparison.Channel}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Spacing="2">
+                      <TextBlock Text="频宽" Classes="caption" />
+                      <TextBlock Text="{Binding AfterComparison.ChannelWidth}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Spacing="2">
+                      <TextBlock Text="RSSI" Classes="caption" />
+                      <TextBlock Text="{Binding AfterComparison.Rssi}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" Spacing="2">
+                      <TextBlock Text="网关延迟" Classes="caption" />
+                      <TextBlock Text="{Binding AfterComparison.GatewayLatency}" FontSize="12" FontWeight="SemiBold" />
+                    </StackPanel>
+                  </Grid>
+                </Border>
+              </StackPanel>
+            </Border>
+          </Grid>
+          <TextBlock Text="{Binding RssiChangeExplanation}" Classes="caption" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Classes="card" Padding="16,14">
+          <Grid RowDefinitions="Auto,280,Auto" RowSpacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <TextBlock Text="RSSI 趋势" FontWeight="SemiBold" FontSize="14" />
+                <TextBlock Text="同一位置、相近时间回测更容易看出设置是否有效" Classes="caption" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+                <TextBlock Text="RSSI 趋势" Foreground="{DynamicResource AccentBrush}" FontSize="11" />
+                <TextBlock Text="变更前标记" Foreground="{Binding BeforeRssiMetric.StatusForeground}" FontSize="11" />
+                <TextBlock Text="变更后标记" Foreground="{Binding AfterRssiMetric.StatusForeground}" FontSize="11" />
+              </StackPanel>
+            </Grid>
+            <Border Grid.Row="1" Background="#202529" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="1" CornerRadius="9">
+              <controls:HistoryLineChart Points="{Binding Points}" Revision="{Binding Points.Count}" />
+            </Border>
+            <TextBlock Grid.Row="2" Text="{Binding HistoryPath, StringFormat=历史只保存在本机：{0}}" Classes="caption" />
+          </Grid>
+        </Border>
+
+        <StackPanel Spacing="9">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="最近采样" Classes="section-title" />
+            <TextBlock Grid.Column="1" Text="每条记录都可标记为变更前、变更后或未标记" Classes="caption" />
+          </Grid>
+          <Border Classes="card" Padding="0">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceRaisedBrush}" Padding="14,10">
+                <Grid ColumnDefinitions="112,*,70,78,76,94,92,112" ColumnSpacing="8">
+                  <TextBlock Text="时间" Classes="caption" />
+                  <TextBlock Grid.Column="1" Text="SSID" Classes="caption" />
+                  <TextBlock Grid.Column="2" Text="信道" Classes="caption" />
+                  <TextBlock Grid.Column="3" Text="频宽" Classes="caption" />
+                  <TextBlock Grid.Column="4" Text="RSSI" Classes="caption" />
+                  <TextBlock Grid.Column="5" Text="网关延迟" Classes="caption" />
+                  <TextBlock Grid.Column="6" Text="状态" Classes="caption" />
+                  <TextBlock Grid.Column="7" Text="标记" Classes="caption" />
+                </Grid>
+              </Border>
+              <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:HistoryRowViewModel">
+                    <Border Padding="14,9" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,1,0,0">
+                      <Grid ColumnDefinitions="112,*,70,78,76,94,92,112" ColumnSpacing="8">
+                        <TextBlock Text="{Binding Time}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{Binding Ssid}" FontSize="11.5" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="2" Text="{Binding Channel}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="{Binding ChannelWidth}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Text="{Binding Rssi}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="5" Text="{Binding GatewayLatency}" FontSize="11.5" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="6" Text="{Binding Status}" Foreground="{Binding StatusForeground}" FontSize="11.5" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="7"
+                                  Width="104"
+                                  MinHeight="28"
+                                  HorizontalAlignment="Left"
+                                  ItemsSource="{Binding MarkerOptions}"
+                                  SelectedItem="{Binding SelectedMarker, Mode=OneWay}"
+                                  SelectionChanged="MarkerSelectionChanged">
+                          <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:HistoryMarkerOptionViewModel">
+                              <TextBlock Text="{Binding Label}" FontSize="11.5" />
+                            </DataTemplate>
+                          </ComboBox.ItemTemplate>
+                        </ComboBox>
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>WiFiHealthConsole.Core</RootNamespace>
+    <AssemblyName>WiFiHealthConsole.Core</AssemblyName>
+  </PropertyGroup>
+</Project>
