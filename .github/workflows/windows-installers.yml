@@ -155,7 +155,7 @@ jobs:
           Get-Content -LiteralPath (Join-Path $installerDirectory "SHA256SUMS-windows.txt")
 
       - name: Upload Windows installers
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wifi-health-console-${{ steps.product-version.outputs.version }}-windows-installers
           path: |
