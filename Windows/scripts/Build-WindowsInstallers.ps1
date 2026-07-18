@@ -23,6 +23,20 @@ $versionFile = Join-Path $repositoryRoot "VERSION"
 $installerScript = Join-Path $windowsRoot "installer\WiFiHealthConsole.nsi"
 $iconPath = Join-Path $windowsRoot "src\WiFiHealthConsole.App\Assets\AppIcon.ico"
 
+$strictUtf8 = [System.Text.UTF8Encoding]::new($false, $true)
+try {
+    $installerSource = [System.IO.File]::ReadAllText($installerScript, $strictUtf8)
+}
+catch {
+    throw "NSIS source '$installerScript' must be valid UTF-8. $($_.Exception.Message)"
+}
+
+foreach ($requiredText in @("Wi-Fi 体检台", "安装程序", "桌面快捷方式")) {
+    if ($installerSource.IndexOf($requiredText, [System.StringComparison]::Ordinal) -lt 0) {
+        throw "NSIS source '$installerScript' is missing the expected UTF-8 text '$requiredText'."
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($ArtifactsDirectory)) {
     $ArtifactsDirectory = Join-Path $windowsRoot "artifacts"
 }
@@ -83,6 +97,8 @@ $outputs = foreach ($arch in $Architecture) {
     $outputPath = Join-Path $installerDirectory "WiFi-Health-Console-Setup-$arch.exe"
     $arguments = @(
         "/V3",
+        "/INPUTCHARSET",
+        "UTF8",
         "/DAPP_ARCH=$arch",
         "/DPRODUCT_VERSION=$Version",
         "/DFILE_VERSION=$fileVersion",

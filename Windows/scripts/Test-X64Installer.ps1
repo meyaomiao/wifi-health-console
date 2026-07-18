@@ -11,6 +11,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath).Path
+$expectedProductName = "Wi-Fi 体检台"
 $installDirectory = Join-Path $env:LOCALAPPDATA "Programs\WiFiHealthConsole"
 $applicationPath = Join-Path $installDirectory "WiFiHealthConsole.exe"
 $uninstallerPath = Join-Path $installDirectory "Uninstall.exe"
@@ -41,6 +42,14 @@ function Invoke-AndRequireSuccess {
 }
 
 try {
+    $installerVersionInfo = (Get-Item -LiteralPath $installer).VersionInfo
+    if ($installerVersionInfo.ProductName -ne $expectedProductName) {
+        throw "Installer product name '$($installerVersionInfo.ProductName)' does not match '$expectedProductName'. The NSIS source may have been compiled with the wrong input charset."
+    }
+    if ($installerVersionInfo.FileDescription -notlike "$expectedProductName*安装程序*") {
+        throw "Installer file description '$($installerVersionInfo.FileDescription)' does not contain the expected Chinese text."
+    }
+
     Write-Host "Silently installing $(Split-Path -Leaf $installer)"
     Invoke-AndRequireSuccess -FilePath $installer -ArgumentList "/S"
 
@@ -74,7 +83,11 @@ try {
     }
 
     $registeredVersion = (Get-ItemProperty -LiteralPath $applicationRegistryPath -Name Version).Version
-    $displayVersion = (Get-ItemProperty -LiteralPath $uninstallRegistryPath -Name DisplayVersion).DisplayVersion
+    $uninstallRegistration = Get-ItemProperty -LiteralPath $uninstallRegistryPath
+    $displayVersion = $uninstallRegistration.DisplayVersion
+    if ($uninstallRegistration.DisplayName -ne $expectedProductName) {
+        throw "Installed display name '$($uninstallRegistration.DisplayName)' does not match '$expectedProductName'."
+    }
     foreach ($actualVersion in @($registeredVersion, $displayVersion)) {
         if ($actualVersion -ne $ExpectedVersion) {
             throw "Installed registry version '$actualVersion' does not match '$ExpectedVersion'."
