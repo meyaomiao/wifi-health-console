@@ -11,6 +11,8 @@
     <Product>Wi-Fi 体检台</Product>
     <Description>Windows 原生 Wi-Fi 信号探测、测速与分层诊断工具</Description>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeFrameworkVersion>10.0.10</RuntimeFrameworkVersion>
+    <WiFiHealthConsoleRepositoryRoot>$(MSBuildProjectDirectory)\..\..\..\</WiFiHealthConsoleRepositoryRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,10 +24,6 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
-    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3">
-      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="FluentIcons.Avalonia" Version="2.1.333" />
   </ItemGroup>
@@ -33,4 +31,36 @@
   <ItemGroup>
     <ProjectReference Include="..\WiFiHealthConsole.Core\WiFiHealthConsole.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <_RequiredLegalFile Include="$(WiFiHealthConsoleRepositoryRoot)LICENSE" />
+    <_RequiredLegalFile Include="$(WiFiHealthConsoleRepositoryRoot)THIRD-PARTY-NOTICES.md" />
+    <_RequiredLegalFile Include="$(WiFiHealthConsoleRepositoryRoot)CODE_SIGNING_POLICY.md" />
+    <_ThirdPartyLicenseFile Include="$(WiFiHealthConsoleRepositoryRoot)licenses\**\*" />
+
+    <Content Include="@(_RequiredLegalFile)">
+      <Link>%(Filename)%(Extension)</Link>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="@(_ThirdPartyLicenseFile)">
+      <Link>licenses\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <TargetPath>licenses\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="ValidateLegalResources" BeforeTargets="PrepareForBuild;Publish">
+    <Error
+      Condition="!Exists('%(_RequiredLegalFile.Identity)')"
+      Text="Required legal file '%(_RequiredLegalFile.Identity)' was not found." />
+    <Error
+      Condition="!Exists('$(WiFiHealthConsoleRepositoryRoot)licenses')"
+      Text="Required third-party license directory '$(WiFiHealthConsoleRepositoryRoot)licenses' was not found." />
+    <Error
+      Condition="'@(_ThirdPartyLicenseFile)' == ''"
+      Text="Required third-party license directory '$(WiFiHealthConsoleRepositoryRoot)licenses' does not contain any files." />
+  </Target>
 </Project>

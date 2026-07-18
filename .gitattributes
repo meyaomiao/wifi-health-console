@@ -1,0 +1,2 @@
+# Vendor legal texts are preserved byte-for-byte, including upstream line endings.
+licenses/** -text -whitespace

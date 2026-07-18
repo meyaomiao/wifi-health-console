@@ -9,12 +9,20 @@ on:
       - "Windows/**"
       - "VERSION"
       - "global.json"
+      - "LICENSE"
+      - "THIRD-PARTY-NOTICES.md"
+      - "CODE_SIGNING_POLICY.md"
+      - "licenses/**"
       - ".github/workflows/windows-installers.yml"
   pull_request:
     paths:
       - "Windows/**"
       - "VERSION"
       - "global.json"
+      - "LICENSE"
+      - "THIRD-PARTY-NOTICES.md"
+      - "CODE_SIGNING_POLICY.md"
+      - "licenses/**"
       - ".github/workflows/windows-installers.yml"
 
 permissions:
@@ -41,10 +49,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Install .NET 10 SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           global-json-file: global.json
           cache: true
@@ -82,6 +90,20 @@ jobs:
 
       - name: Verify multi-file publish outputs
         run: |
+          $requiredLegalFiles = @(
+            "LICENSE",
+            "THIRD-PARTY-NOTICES.md",
+            "CODE_SIGNING_POLICY.md"
+          )
+          $repositoryLicensesDirectory = "licenses"
+          if (-not (Test-Path -LiteralPath $repositoryLicensesDirectory -PathType Container)) {
+            throw "Required repository license directory '$repositoryLicensesDirectory' is missing."
+          }
+          $repositoryLicenseFiles = @(Get-ChildItem -LiteralPath $repositoryLicensesDirectory -File -Recurse)
+          if ($repositoryLicenseFiles.Count -eq 0) {
+            throw "Required repository license directory '$repositoryLicensesDirectory' does not contain any files."
+          }
+
           foreach ($runtime in @("win-x64", "win-arm64")) {
             $publishDirectory = "Windows/artifacts/publish/$runtime"
             $application = Join-Path $publishDirectory "WiFiHealthConsole.exe"
@@ -96,6 +118,28 @@ jobs:
 
             if (-not (Test-Path -LiteralPath (Join-Path $publishDirectory "coreclr.dll"))) {
               throw "$runtime publish is not self-contained: coreclr.dll is missing."
+            }
+
+            foreach ($relativePath in $requiredLegalFiles) {
+              $sourcePath = Join-Path $PWD $relativePath
+              if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+                throw "Required repository legal file '$sourcePath' is missing."
+              }
+              $publishedPath = Join-Path $publishDirectory $relativePath
+              if (-not (Test-Path -LiteralPath $publishedPath -PathType Leaf)) {
+                throw "$runtime publish is missing required legal file '$relativePath'."
+              }
+            }
+
+            foreach ($sourceFile in $repositoryLicenseFiles) {
+              $relativePath = [System.IO.Path]::GetRelativePath(
+                (Resolve-Path -LiteralPath $repositoryLicensesDirectory).Path,
+                $sourceFile.FullName
+              )
+              $publishedPath = Join-Path (Join-Path $publishDirectory "licenses") $relativePath
+              if (-not (Test-Path -LiteralPath $publishedPath -PathType Leaf)) {
+                throw "$runtime publish is missing third-party license '$relativePath'."
+              }
             }
           }
 
@@ -115,7 +159,7 @@ jobs:
         run: Write-Host "Windows signing secrets are not configured; producing unsigned CI artifacts. Apple Developer ID certificates cannot sign Windows executables."
 
       - name: Install NSIS
-        run: choco install nsis --yes --no-progress --limit-output
+        run: choco install nsis --version=3.12.0 --yes --no-progress --limit-output
 
       - name: Build x64 and ARM64 EXE installers
         run: ./Windows/scripts/Build-WindowsInstallers.ps1
@@ -155,7 +199,7 @@ jobs:
           Get-Content -LiteralPath (Join-Path $installerDirectory "SHA256SUMS-windows.txt")
 
       - name: Upload Windows installers
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: wifi-health-console-${{ steps.product-version.outputs.version }}-windows-installers
           path: |

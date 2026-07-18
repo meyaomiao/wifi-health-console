@@ -26,6 +26,28 @@ APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
 APP_ICON_SOURCE="$ROOT_DIR/Assets/AppIcon.icns"
+LEGAL_RESOURCE_FILES=(
+  "LICENSE"
+  "THIRD-PARTY-NOTICES.md"
+  "CODE_SIGNING_POLICY.md"
+)
+LICENSES_SOURCE="$ROOT_DIR/licenses"
+
+for relative_path in "${LEGAL_RESOURCE_FILES[@]}"; do
+  source_path="$ROOT_DIR/$relative_path"
+  if [[ ! -f "$source_path" ]]; then
+    echo "Required legal file not found: $source_path" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "$LICENSES_SOURCE" ]]; then
+  echo "Required third-party license directory not found: $LICENSES_SOURCE" >&2
+  exit 1
+fi
+if [[ -z "$(/usr/bin/find "$LICENSES_SOURCE" -type f -print -quit)" ]]; then
+  echo "Required third-party license directory is empty: $LICENSES_SOURCE" >&2
+  exit 1
+fi
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 
@@ -37,6 +59,10 @@ rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 cp "$APP_ICON_SOURCE" "$APP_RESOURCES/AppIcon.icns"
+for relative_path in "${LEGAL_RESOURCE_FILES[@]}"; do
+  /usr/bin/ditto "$ROOT_DIR/$relative_path" "$APP_RESOURCES/$relative_path"
+done
+/usr/bin/ditto "$LICENSES_SOURCE" "$APP_RESOURCES/licenses"
 chmod +x "$APP_BINARY"
 
 cat >"$INFO_PLIST" <<PLIST
