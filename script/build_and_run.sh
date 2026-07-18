@@ -17,7 +17,7 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "Invalid product version in $VERSION_FILE: $VERSION" >&2
   exit 1
 fi
-BUILD_NUMBER="10"
+BUILD_NUMBER="11"
 DIST_DIR="$ROOT_DIR/dist"
 APP_BUNDLE="$DIST_DIR/$APP_NAME.app"
 APP_CONTENTS="$APP_BUNDLE/Contents"

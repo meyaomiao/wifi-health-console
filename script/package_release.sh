@@ -10,7 +10,7 @@ if [[ ! -f "$VERSION_FILE" ]]; then
   exit 1
 fi
 VERSION="$(/usr/bin/tr -d '[:space:]' < "$VERSION_FILE")"
-BUILD_NUMBER="${BUILD_NUMBER:-10}"
+BUILD_NUMBER="${BUILD_NUMBER:-11}"
 BUNDLE_ID="${BUNDLE_ID:-com.meyaomiao.WiFiHealthConsole}"
 MIN_SYSTEM_VERSION="14.0"
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
