@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using WiFiHealthConsole.App.ViewModels;
 
 namespace WiFiHealthConsole.App.Views;
@@ -19,5 +20,13 @@ public partial class MainWindow : Window
                 await viewModel.InitializeAsync();
             }
         };
+    }
+
+    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
     }
 }

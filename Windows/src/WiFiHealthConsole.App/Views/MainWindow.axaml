@@ -42,7 +42,10 @@
             BorderBrush="{DynamicResource BorderSoftBrush}"
             BorderThickness="0,0,1,0">
       <Grid RowDefinitions="Auto,*,Auto" Margin="14,11,12,12">
-        <Border Height="42" Margin="4,0,4,13" Background="Transparent" />
+        <Border Height="42"
+                Margin="4,0,4,13"
+                Background="Transparent"
+                PointerPressed="OnTitleBarPointerPressed" />
 
         <ListBox Grid.Row="1"
                  Classes="navigation"
@@ -79,11 +82,13 @@
     <Grid Grid.Column="1" RowDefinitions="54,*">
       <Border Grid.Row="0" BorderBrush="{DynamicResource BorderSoftBrush}" BorderThickness="0,0,0,1">
         <Grid x:Name="TitleBarHost" ColumnDefinitions="*,Auto" Margin="20,0,148,0">
-          <TextBlock Text="Wi-Fi 体检台"
-                     VerticalAlignment="Center"
-                     Foreground="{DynamicResource TextMutedBrush}"
-                     FontSize="13"
-                     FontWeight="SemiBold" />
+          <Border Background="Transparent" PointerPressed="OnTitleBarPointerPressed">
+            <TextBlock Text="Wi-Fi 体检台"
+                       VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       FontSize="13"
+                       FontWeight="SemiBold" />
+          </Border>
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
             <Button Classes="toolbar" Command="{Binding RefreshCommand}" ToolTip.Tip="刷新">
               <fi:FluentIcon Icon="ArrowClockwise" IconVariant="Regular" FontSize="16" />
