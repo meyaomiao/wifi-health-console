@@ -11,6 +11,7 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $installer = (Resolve-Path -LiteralPath $InstallerPath).Path
+$repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $expectedProductName = "Wi-Fi 体检台"
 $installDirectory = Join-Path $env:LOCALAPPDATA "Programs\WiFiHealthConsole"
 $applicationPath = Join-Path $installDirectory "WiFiHealthConsole.exe"
@@ -28,6 +29,28 @@ $uninstallRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninst
 $historyDirectory = Join-Path $env:LOCALAPPDATA "WiFiHealthConsole"
 $smokeHistoryDirectory = Join-Path $historyDirectory "installer-smoke-test"
 $historySentinel = Join-Path $smokeHistoryDirectory "history.keep"
+$requiredRepositoryLegalFiles = @(
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md",
+    "CODE_SIGNING_POLICY.md"
+)
+$repositoryLicensesDirectory = Join-Path $repositoryRoot "licenses"
+
+foreach ($relativePath in $requiredRepositoryLegalFiles) {
+    $sourcePath = Join-Path $repositoryRoot $relativePath
+    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+        throw "Required repository legal file '$sourcePath' was not found."
+    }
+}
+
+if (-not (Test-Path -LiteralPath $repositoryLicensesDirectory -PathType Container)) {
+    throw "Required repository license directory '$repositoryLicensesDirectory' was not found."
+}
+
+$repositoryLicenseFiles = @(Get-ChildItem -LiteralPath $repositoryLicensesDirectory -File -Recurse)
+if ($repositoryLicenseFiles.Count -eq 0) {
+    throw "Required repository license directory '$repositoryLicensesDirectory' does not contain any files."
+}
 
 function Invoke-AndRequireSuccess {
     param(
@@ -56,6 +79,21 @@ try {
     foreach ($requiredPath in @($applicationPath, $uninstallerPath)) {
         if (-not (Test-Path -LiteralPath $requiredPath)) {
             throw "Installer smoke test expected '$requiredPath' to exist."
+        }
+    }
+
+    foreach ($relativePath in $requiredRepositoryLegalFiles) {
+        $installedPath = Join-Path $installDirectory $relativePath
+        if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf)) {
+            throw "Installer smoke test expected legal file '$installedPath' to exist."
+        }
+    }
+
+    foreach ($sourceFile in $repositoryLicenseFiles) {
+        $relativePath = [System.IO.Path]::GetRelativePath($repositoryLicensesDirectory, $sourceFile.FullName)
+        $installedPath = Join-Path (Join-Path $installDirectory "licenses") $relativePath
+        if (-not (Test-Path -LiteralPath $installedPath -PathType Leaf)) {
+            throw "Installer smoke test expected third-party license '$installedPath' to exist."
         }
     }
 
@@ -141,7 +179,7 @@ try {
         throw "Uninstall removed the LocalAppData history sentinel; user history must be retained by default."
     }
 
-    Write-Host "x64 install, in-place upgrade, launch, uninstall, and history-retention smoke tests passed."
+    Write-Host "x64 install, legal-file, in-place upgrade, launch, uninstall, and history-retention smoke tests passed."
 }
 finally {
     Get-Process -Name "WiFiHealthConsole" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue

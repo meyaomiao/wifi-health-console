@@ -33,9 +33,31 @@ APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_EXECUTABLE"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
 APP_ICON_SOURCE="$ROOT_DIR/Assets/AppIcon.icns"
+LEGAL_RESOURCE_FILES=(
+  "LICENSE"
+  "THIRD-PARTY-NOTICES.md"
+  "CODE_SIGNING_POLICY.md"
+)
+LICENSES_SOURCE="$ROOT_DIR/licenses"
 DMG_ROOT="$RELEASE_DIR/dmg-root"
 DMG_PATH="$RELEASE_DIR/Wi-Fi-Health-Console-$VERSION-universal.dmg"
 CHECKSUM_PATH="$DMG_PATH.sha256"
+
+for relative_path in "${LEGAL_RESOURCE_FILES[@]}"; do
+  source_path="$ROOT_DIR/$relative_path"
+  if [[ ! -f "$source_path" ]]; then
+    echo "Required legal file not found: $source_path" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "$LICENSES_SOURCE" ]]; then
+  echo "Required third-party license directory not found: $LICENSES_SOURCE" >&2
+  exit 1
+fi
+if [[ -z "$(/usr/bin/find "$LICENSES_SOURCE" -type f -print -quit)" ]]; then
+  echo "Required third-party license directory is empty: $LICENSES_SOURCE" >&2
+  exit 1
+fi
 
 cd "$ROOT_DIR"
 if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -60,6 +82,10 @@ BUILD_BINARY_DIR="$(swift build \
 
 /usr/bin/ditto "$BUILD_BINARY_DIR/$APP_EXECUTABLE" "$APP_BINARY"
 /usr/bin/ditto "$APP_ICON_SOURCE" "$APP_RESOURCES/AppIcon.icns"
+for relative_path in "${LEGAL_RESOURCE_FILES[@]}"; do
+  /usr/bin/ditto "$ROOT_DIR/$relative_path" "$APP_RESOURCES/$relative_path"
+done
+/usr/bin/ditto "$LICENSES_SOURCE" "$APP_RESOURCES/licenses"
 chmod +x "$APP_BINARY"
 
 cat >"$INFO_PLIST" <<PLIST

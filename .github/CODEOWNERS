@@ -1,1 +1,20 @@
 * @meyaomiao
+
+# Repository governance and release integrity
+/.github/CODEOWNERS @meyaomiao
+/.github/workflows/ @meyaomiao
+/.signpath/ @meyaomiao
+/.gitattributes @meyaomiao
+/LICENSE @meyaomiao
+/THIRD-PARTY-NOTICES.md @meyaomiao
+/CODE_SIGNING_POLICY.md @meyaomiao
+/licenses/ @meyaomiao
+/VERSION @meyaomiao
+/global.json @meyaomiao
+
+# Packaging, signing, and installer verification
+/script/build_and_run.sh @meyaomiao
+/script/package_release.sh @meyaomiao
+/Windows/installer/ @meyaomiao
+/Windows/scripts/ @meyaomiao
+/Windows/src/WiFiHealthConsole.App/WiFiHealthConsole.App.csproj @meyaomiao
