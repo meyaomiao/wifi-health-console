@@ -136,6 +136,7 @@ public static class HealthStatusLabels
     public const string Warning = "注意";
     public const string Critical = "严重";
     public const string Reference = "参考";
+    public const string NotSupported = "不支持";
     public const string Unavailable = "未检测";
     public const string Partial = "部分完成";
 }

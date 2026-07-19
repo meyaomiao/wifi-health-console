@@ -392,7 +392,10 @@ public static class HealthStandards
         HealthGrade.Good => label is HealthStatusLabels.Excellent or HealthStatusLabels.Normal,
         HealthGrade.Warning => label == HealthStatusLabels.Warning,
         HealthGrade.Critical => label == HealthStatusLabels.Critical,
-        HealthGrade.Unavailable => label is HealthStatusLabels.Unavailable or HealthStatusLabels.Reference or HealthStatusLabels.Partial,
+        HealthGrade.Unavailable => label is HealthStatusLabels.Unavailable
+            or HealthStatusLabels.NotSupported
+            or HealthStatusLabels.Reference
+            or HealthStatusLabels.Partial,
         _ => false,
     };
 
@@ -435,8 +438,11 @@ public static class HealthStandards
         var reason = string.IsNullOrWhiteSpace(observation.Detail)
             ? $"未取得 {metric}。"
             : observation.Detail!;
+        var label = observation.Availability == MetricAvailability.NotSupported
+            ? HealthStatusLabels.NotSupported
+            : HealthStatusLabels.Unavailable;
 
-        return Make(HealthGrade.Unavailable, HealthStatusLabels.Unavailable, reason, standard);
+        return Make(HealthGrade.Unavailable, label, reason, standard);
     }
 
     private static MetricAssessment Make(

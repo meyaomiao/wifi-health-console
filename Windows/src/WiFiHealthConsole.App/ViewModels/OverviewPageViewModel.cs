@@ -192,7 +192,7 @@ public partial class OverviewPageViewModel : ViewModelBase
             .ToArray();
         var hasIncompleteAirEvidence = decisive.Any(assessment =>
             assessment.Grade == HealthGrade.Unavailable
-            && assessment.StatusLabel == HealthStatusLabels.Unavailable);
+            && assessment.StatusLabel is HealthStatusLabels.Unavailable or HealthStatusLabels.NotSupported);
         var measuredGrade = HealthStandards.Worst(decisive);
         var grade = snapshot.IsConnected
             ? measuredGrade == HealthGrade.Good && hasIncompleteAirEvidence

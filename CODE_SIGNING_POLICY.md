@@ -5,7 +5,7 @@
 ## 当前签名状态
 
 - macOS 正式安装包由维护者使用 Apple `Developer ID Application` 证书签名，提交 Apple 公证并装订票据。签名身份和公证凭据只保存在维护者受保护的本机钥匙串中，不进入仓库或 CI 日志。
-- Windows v0.4.1 安装包尚未获得 Authenticode 签名，发布页明确标记为“未知发布者”风险。用户应只从本仓库的 GitHub Release 下载，并核对 `SHA256SUMS.txt`。
+- Windows v0.4.2 安装包尚未获得 Authenticode 签名，发布页明确标记为“未知发布者”风险。用户应只从本仓库的 GitHub Release 下载，并核对 `SHA256SUMS-windows.txt`。
 - 项目正在准备申请 SignPath Foundation 的免费开源代码签名，但尚未获批，也没有任何发行版使用 SignPath Foundation 证书。获批并完成集成前，不会宣称 SignPath 为本项目提供签名。
 
 ## 团队角色

@@ -26,6 +26,17 @@ public sealed class HealthStandardsTests
     public void SnrBoundariesMatchMacEdition(int? value, HealthGrade grade, string label) =>
         AssertAssessment(HealthStandards.Snr(value), grade, label);
 
+    [Fact]
+    public void NotSupportedObservationIsNotReportedAsMissing()
+    {
+        var observation = Observed<int>.Unavailable(
+            MetricAvailability.NotSupported,
+            EvidenceSource.NativeWlanApi,
+            "Windows 公共 WLAN API 不提供 SNR。");
+
+        AssertAssessment(HealthStandards.Snr(observation), HealthGrade.Unavailable, "不支持");
+    }
+
     [Theory]
     [InlineData(null, HealthGrade.Unavailable, "未检测")]
     [InlineData(50.0, HealthGrade.Good, "正常")]
@@ -170,9 +181,9 @@ public sealed class HealthStandardsTests
                 "没有真实 CCA"),
         };
 
-        AssertAssessment(HealthStandards.Noise(snapshot.NoiseDbm), HealthGrade.Unavailable, "未检测");
-        AssertAssessment(HealthStandards.Snr(snapshot.SnrDb), HealthGrade.Unavailable, "未检测");
-        AssertAssessment(HealthStandards.Cca(snapshot.CcaPercent), HealthGrade.Unavailable, "未检测");
+        AssertAssessment(HealthStandards.Noise(snapshot.NoiseDbm), HealthGrade.Unavailable, "不支持");
+        AssertAssessment(HealthStandards.Snr(snapshot.SnrDb), HealthGrade.Unavailable, "不支持");
+        AssertAssessment(HealthStandards.Cca(snapshot.CcaPercent), HealthGrade.Unavailable, "不支持");
         Assert.False(snapshot.SnrDb.TryGetValue(out _));
         Assert.False(snapshot.CcaPercent.TryGetValue(out _));
     }

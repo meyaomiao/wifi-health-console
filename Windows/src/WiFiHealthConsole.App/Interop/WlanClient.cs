@@ -6,6 +6,7 @@ namespace WiFiHealthConsole.App.Interop;
 internal sealed class WlanClient : IDisposable
 {
     private const int CollectionHeaderSize = sizeof(uint) * 2;
+    private const int BssListCountOffset = sizeof(uint);
     private const int MaximumReasonableInterfaceCount = 128;
     private const int MaximumReasonableBssCount = 16_384;
     private const uint MaximumReasonableNativeBufferSize = 256 * 1024 * 1024;
@@ -187,7 +188,12 @@ internal sealed class WlanClient : IDisposable
                 throw new InvalidDataException($"Native WLAN BSS 列表长度异常：{totalSize} 字节。");
             }
 
-            var count = ReadBoundedCount(listPointer, MaximumReasonableBssCount, "BSS");
+            // WLAN_BSS_LIST starts with dwTotalSize followed by dwNumberOfItems.
+            var count = ReadBoundedCount(
+                listPointer,
+                MaximumReasonableBssCount,
+                "BSS",
+                BssListCountOffset);
             var entrySize = Marshal.SizeOf<WlanBssEntry>();
             var fixedEntriesSize = checked(CollectionHeaderSize + (count * entrySize));
             if ((uint)fixedEntriesSize > totalSize)
@@ -249,9 +255,13 @@ internal sealed class WlanClient : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static int ReadBoundedCount(IntPtr listPointer, int maximum, string collectionName)
+    internal static int ReadBoundedCount(
+        IntPtr listPointer,
+        int maximum,
+        string collectionName,
+        int countOffset = 0)
     {
-        var rawCount = unchecked((uint)Marshal.ReadInt32(listPointer, 0));
+        var rawCount = unchecked((uint)Marshal.ReadInt32(listPointer, countOffset));
         if (rawCount > maximum)
         {
             throw new InvalidDataException($"Native WLAN {collectionName} 数量异常：{rawCount}。");
