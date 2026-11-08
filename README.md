@@ -31,6 +31,12 @@
 
 > 当前源码版本为 v0.4.2；macOS 现有正式包为 v0.4.1，Windows 修复包为 v0.4.2 Preview。两个平台都可直接用图形界面安装与使用，不需要命令行。
 
+## 🤝 合作伙伴：米云
+
+<a href="https://momotoken.win"><img src="docs/assets/miyun-banner.png" alt="米云 MIYUN · 多模型 AI API 聚合平台 momotoken.win" width="760"></a>
+
+**[米云 MIYUN](https://momotoken.win)** —— 多模型 AI API 聚合平台：稳定不降智，模型上线快又多；统一 API 接入、按量使用、余额集中管理。
+
 ## 平台支持
 
 | 平台 | 当前版本 | 界面与采集 | 发布状态 |
